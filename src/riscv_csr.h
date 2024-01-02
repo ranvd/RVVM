@@ -82,6 +82,50 @@ static inline void fpu_set_fs(rvvm_hart_t* vm, uint8_t value)
 
 #endif
 
+#ifdef USE_RVV
+// RVV-control stuff
+#define RVV_OFF     0
+#define RVV_INITIAL 1
+#define RVV_CLEAN   2
+#define RVV_DIRTY   3
+
+static inline bool rvv_is_enabled(rvvm_hart_t* vm)
+{
+    return bit_cut(vm->csr.status, 9, 2) != RVV_OFF;
+}
+
+static inline void rvv_set_vs(rvvm_hart_t* vm, uint8_t value)
+{
+    vm->csr.status = bit_replace(vm->csr.status, 9, 2, value);
+}
+
+static inline int32_t rvv_vill(rvvm_hart_t *vm)
+{
+    return (int32_t) bit_cut(vm->csr.vtype, 31, 1);
+}
+
+static inline int32_t rvv_vma(rvvm_hart_t *vm)
+{
+    return (int32_t) bit_cut(vm->csr.vtype, 7, 1);
+}
+
+static inline int32_t rvv_vta(rvvm_hart_t *vm)
+{
+    return (int32_t) bit_cut(vm->csr.vtype, 6, 1);
+}
+
+static inline int32_t rvv_vsew(rvvm_hart_t *vm)
+{
+    return (int32_t) bit_cut(vm->csr.vtype, 3, 3);
+}
+
+static inline int32_t rvv_vlmul(rvvm_hart_t *vm)
+{
+    return sign_extend(bit_cut(vm->csr.vtype, 0, 3), 3);
+}
+
+#endif
+
 typedef bool (*riscv_csr_handler_t)(rvvm_hart_t* vm, maxlen_t* dest, uint8_t op);
 
 extern riscv_csr_handler_t riscv_csr_list[4096];

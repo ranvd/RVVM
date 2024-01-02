@@ -40,6 +40,13 @@ rvvm_hart_t* riscv_hart_init(rvvm_machine_t* machine)
     for (size_t i=0; i<512; ++i) vm->decoder.opcodes[i] = riscv_illegal_insn;
     for (size_t i=0; i<32; ++i) vm->decoder.opcodes_c[i] = riscv_c_illegal_insn;
 
+#ifdef USE_RVV
+    vm->VLEN = 0b1 << 16;
+    vm->ELEN = 0b1 << 16;
+    vm->SEW_min = 8;
+    rvv_set_vs(vm, RVV_INITIAL);
+#endif
+
     if (vm->rv64) {
 #ifdef USE_RV64
         // 0x2A00000000 for H-mode

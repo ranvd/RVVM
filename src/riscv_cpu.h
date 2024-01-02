@@ -53,6 +53,8 @@ void riscv32d_enable(rvvm_hart_t* vm, bool enable);
 void riscv64f_enable(rvvm_hart_t* vm, bool enable);
 void riscv64d_enable(rvvm_hart_t* vm, bool enable);
 
+void riscv32v_enable(rvvm_hart_t* vm, bool enable);
+
 void riscv_illegal_insn(rvvm_hart_t* vm, const uint32_t instruction);
 void riscv_c_illegal_insn(rvvm_hart_t* vm, const uint16_t instruction);
 
@@ -430,6 +432,7 @@ do { \
     #define riscv_a_init riscv64a_init
     #define riscv_f_enable riscv64f_enable
     #define riscv_d_enable riscv64d_enable
+    #define riscv_v_enable riscv64v_enable
 #else
     typedef uint32_t xlen_t;
     typedef int32_t sxlen_t;
@@ -442,6 +445,7 @@ do { \
     #define riscv_a_init riscv32a_init
     #define riscv_f_enable riscv32f_enable
     #define riscv_d_enable riscv32d_enable
+    #define riscv_v_enable riscv32v_enable
 #endif
 
 static inline xlen_t riscv_read_register(rvvm_hart_t *vm, regid_t reg)
@@ -653,6 +657,11 @@ static inline regid_t riscv_c_reg(regid_t reg)
 #define RVD_FNMADD       0x113 /* R + funct3 */
 /* except FCVT.S.D */
 #define RVD_OTHER        0x114 /* R + funct3 + funct7 a bunch */
+
+/*
+ * RV32V instructions
+ */
+#define RVV_
 
 #endif
 #endif

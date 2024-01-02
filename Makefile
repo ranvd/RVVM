@@ -283,6 +283,7 @@ SRC := $(filter-out $(SRC_cond),$(SRC))
 # Default build configuration
 USE_RV64 ?= 1
 USE_FPU ?= 1
+USE_RVV ?= 1
 USE_JIT ?= 1
 USE_FB ?= 1
 USE_SDL ?= 0
@@ -308,6 +309,11 @@ ifeq ($(CC_TYPE),clang)
 override CFLAGS += -Wno-unsupported-floating-point-opt -Wno-unknown-warning-option -Wno-ignored-optimization-argument
 endif
 endif
+endif
+
+# Vector extension
+ifeq ($(USE_RVV), 1)
+override CFLAGS += -DUSE_RVV
 endif
 
 ifeq ($(USE_JIT),1)

@@ -49,4 +49,16 @@ void riscv_priv_init(rvvm_hart_t* vm);
 #define RV_PRIV_S_HFENCE_BVMA 0x22000073
 #define RV_PRIV_S_HFENCE_GVMA 0xA2000073
 
+// Privileged instructions in V extension
+#define RV_PRIV_V_VSETVL           0xF5
+
+// Priviledge vsetvl instruction mask and decoding
+#define RV_PRIV_V_VSETVL_MASK 0xC0000000
+enum
+{
+    vsetvli_0 = 0,
+    vsetvli_1,
+    vsetvl,
+    vsetivli
+};
 #endif

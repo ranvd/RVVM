@@ -173,6 +173,10 @@ void riscv_decoder_init_rv64(rvvm_hart_t* vm)
         riscv64d_enable(vm, true);
     }
 #endif
+
+#ifdef USE_RVV
+    /* Todo: Enable rsicv64v */
+#endif
 }
 #endif
 
@@ -186,6 +190,12 @@ void riscv_decoder_init_rv32(rvvm_hart_t* vm)
     if (fpu_is_enabled(vm)) {
         riscv32f_enable(vm, true);
         riscv32d_enable(vm, true);
+    }
+#endif
+#ifdef USE_RVV
+    if (rvv_is_enabled(vm)) {
+    /* Todo: Enable riscv64v */
+        riscv32v_enable(vm, true);
     }
 #endif
 }
@@ -205,6 +215,18 @@ void riscv_decoder_enable_fpu(rvvm_hart_t* vm, bool enable)
 #endif
 }
 
+static inline void log_register_info(rvvm_hart_t* vm){
+    for (int i = REGISTER_ZERO; i < REGISTERS_MAX; i++){
+        if (i == REGISTER_PC)
+            printf("PC %d: %lx\n", i, vm->registers[i]);
+        else
+            printf("reg %d: %ld\n", i, vm->registers[i]);
+    }
+#ifdef USE_FPU
+    printf("FPU status: %d\n", fpu_is_enabled(vm));
+#endif
+   printf("---------------\n");
+}
 /*
  * Optimized dispatch loop that does not fetch each instruction,
  * and invokes MMU on page change instead.
@@ -221,6 +243,8 @@ TSAN_SUPPRESS void riscv_run_till_event(rvvm_hart_t* vm)
 
     // Execute instructions loop until some event occurs (interrupt, trap)
     while (likely(vm->wait_event)) {
+        log_register_info(vm);
+        sleep_ms(1000);
         vm->registers[REGISTER_ZERO] = 0;
         inst_addr = vm->registers[REGISTER_PC];
         if (likely(inst_addr - page_addr < 0xFFD)) {
