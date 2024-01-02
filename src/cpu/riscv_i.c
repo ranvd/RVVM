@@ -707,7 +707,7 @@ static void riscv64i_sd(rvvm_hart_t *vm, const uint32_t instruction)
     riscv_store_u64(vm, addr, rs2);
 }
 
-#endif
+#endif /* RV64 */
 
 void riscv_i_init(rvvm_hart_t* vm)
 {

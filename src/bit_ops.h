@@ -57,6 +57,29 @@ static inline bool bit_check(uint64_t val, bitcnt_t pos)
     return (val >> pos) & 0x1;
 }
 
+static inline uint32_t bit_clz(uint64_t x){
+    x |= (x >> 1);
+    x |= (x >> 2);
+    x |= (x >> 4);
+    x |= (x >> 8);
+    x |= (x >> 16);
+    x |= (x >> 32);
+	
+    /* count ones (population count) */
+    x -= ((x >> 1) & 0x5555555555555555);
+    x = ((x >> 2) & 0x3333333333333333) + (x & 0x3333333333333333);
+    x = ((x >> 4) + x) & 0x0f0f0f0f0f0f0f0f;
+    x += (x >> 8);
+    x += (x >> 16);
+    x += (x >> 32);
+    
+    return (64 - (x & 0x7f));
+}
+
+static inline uint32_t bit_log2(uint64_t val){
+    return 64 - bit_clz(val);
+}
+
 // Normalize the value to nearest next power of two
 static inline uint64_t bit_next_pow2(uint64_t val)
 {

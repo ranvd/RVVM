@@ -534,6 +534,38 @@ static bool riscv_csr_timeh(rvvm_hart_t* vm, maxlen_t* dest, uint8_t op)
     return true;
 }
 
+#ifdef USE_RVV
+static bool riscv_csr_vtype(rvvm_hart_t* vm, maxlen_t* dest, uint8_t op)
+{
+    /* Todo: vtype can only be set by vset{i}vl{i} insn. 
+     * Still need a machanism to prevent the write from other incution
+     */
+    maxlen_t val = vm->csr.vtype;
+    csr_helper(&val, dest, op);
+
+    // checkt vtype is valid
+    int32_t lmul = rvv_vlmul(val);
+    if (lmul < vm->SEW_min - bit_log2(vm->ELEN)){
+        val = bit_replace(val, 31, 1, 1);
+    }
+    vm->csr.vtype = val;
+    return true;
+}
+
+static bool riscv_csr_vl(rvvm_hart_t* vm, maxlen_t* dest, uint8_t op)
+{
+    // check vl is valid
+    maxlen_t val = vm->csr.vl;
+    csr_helper(&val, dest, op);
+
+    // check vl is valid
+
+
+    maxlen_t val = vm->csr.vl;
+    
+}
+#endif
+
 void riscv_csr_global_init()
 {
     for (size_t i=0; i<4096; ++i) riscv_csr_list[i] = riscv_csr_illegal;
@@ -620,6 +652,16 @@ void riscv_csr_global_init()
     riscv_csr_list[0x001] = riscv_csr_fflags;   // fflags
     riscv_csr_list[0x002] = riscv_csr_frm;      // frm
     riscv_csr_list[0x003] = riscv_csr_fcsr;     // fcsr
+#endif
+
+#ifdef USE_RVV /* Todo: action wan r/w csr */
+    riscv_csr_list[0x008] = riscv_csr_zero;     // vstart
+    riscv_csr_list[0x009] = riscv_csr_zero;     // vxsat
+    riscv_csr_list[0x00A] = riscv_csr_zero;     // vxrm
+    riscv_csr_list[0x00F] = riscv_csr_zero;     // vcsr
+    riscv_csr_list[0xC20] = riscv_csr_vl;       // vl
+    riscv_csr_list[0xC21] = riscv_csr_vtype;    // vtype
+    riscv_csr_list[0xC22] = riscv_csr_zero;     // vlenb
 #endif
 
     // User Counter/Timers

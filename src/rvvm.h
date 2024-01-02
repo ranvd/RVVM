@@ -92,6 +92,7 @@ enum
 };
 
 #define FPU_REGISTERS_MAX REGISTERS_MAX
+#define RVV_REGISTERS_MAX REGISTERS_MAX
 
 enum
 {
@@ -202,6 +203,10 @@ struct rvvm_hart_t {
     double fpu_registers[FPU_REGISTERS_MAX];
 #endif
 
+#ifdef USE_RVV
+    char *vector_registers[RVV_REGISTERS_MAX];
+#endif
+
     // We want short offsets from vmptr to tlb
     rvvm_tlb_entry_t tlb[TLB_SIZE];
 #ifdef USE_JIT
@@ -235,7 +240,23 @@ struct rvvm_hart_t {
         maxlen_t tval[PRIVILEGES_MAX];
         maxlen_t ip;
         maxlen_t fcsr;
+# ifdef USE_RVV
+        maxlen_t vstart;
+        maxlen_t vxsat;
+        maxlen_t vxrm;
+        maxlen_t vcrs;
+        maxlen_t vl;
+        maxlen_t vtype;
+        maxlen_t vlenb;
+# endif
     } csr;
+
+# ifdef USE_RVV
+    uint32_t VLEN; // 8 <= VELN <= 2^16
+    uint32_t ELEN; // 8 <= ELEN <= VLEN
+    uint32_t SEW_min; // minimum size of sew
+# endif
+
 #ifdef USE_JIT
     rvjit_block_t jit;
     bool jit_enabled;

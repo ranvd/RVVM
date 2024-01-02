@@ -82,6 +82,66 @@ static inline void fpu_set_fs(rvvm_hart_t* vm, uint8_t value)
 
 #endif
 
+#ifdef USE_RVV
+// RVV-control stuff
+#define RVV_OFF     0
+#define RVV_INITIAL 1
+#define RVV_CLEAN   2
+#define RVV_DIRTY   3
+
+static inline bool rvv_is_enabled(rvvm_hart_t* vm)
+{
+    return bit_cut(vm->csr.status, 9, 2) != RVV_OFF;
+}
+
+static inline void rvv_set_vs(rvvm_hart_t* vm, uint8_t value)
+{
+    vm->csr.status = bit_replace(vm->csr.status, 9, 2, value);
+}
+
+static inline bool rvv_vill(maxlen_t vtype)
+{
+    return (bool) bit_cut(vtype, 31, 1);
+}
+
+static inline bool rvv_vma(maxlen_t vtype)
+{
+    return (bool) bit_cut(vtype, 7, 1);
+}
+
+static inline bool rvv_vta(maxlen_t vtype)
+{
+    return (bool) bit_cut(vtype, 6, 1);
+}
+
+static inline int32_t rvv_vsew(maxlen_t vtype)
+{
+    return (int32_t) (8 << bit_cut(vtype, 3, 3));
+}
+
+static inline int32_t rvv_raw_vlmul(maxlen_t vtype)
+{
+    return sign_extend(bit_cut(vtype, 0, 3), 3);
+}
+
+static inline int32_t rvv_vlmax(maxlen_t vtype){
+    int32_t raw_vlmul = rvv_raw_vlmul(vtype);
+    
+    int bit = raw_vlmul & 0b100;
+    int left_s, right_s;
+    if (bit){
+        left_s = 0;
+        right_s = raw_vlmul & 0b11;
+    } else {
+        left_s = raw_vlmul & 0b11;
+        right_s = 0;
+    }
+    
+    vm->VLEN >> bit_log2(rvv_vsew(vtype)) >> left_s << right_s;
+}
+
+#endif
+
 typedef bool (*riscv_csr_handler_t)(rvvm_hart_t* vm, maxlen_t* dest, uint8_t op);
 
 extern riscv_csr_handler_t riscv_csr_list[4096];
