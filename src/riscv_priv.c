@@ -232,21 +232,24 @@ static void riscv_zicsr_csrrci(rvvm_hart_t *vm, const uint32_t instruction)
 #ifdef USE_RVV
 static void riscv_v_vsetvl(rvvm_hart_t *vm, const uint32_t instruction)
 {
+    rvv_set_vs(vm, RVV_DIRTY);
     regid_t rds = bit_cut(instruction, 7, 5);
+    regid_t rd1 = bit_cut(instruction, 15, 5);
     switch (instruction & RV_PRIV_V_VSETVL_MASK)
     {
     case vsetvli_0: // 0b0x
     case vsetvli_1:
         // set vtype
-        maxlen_t val = bit_cut(instruction, 20, 11);
-        if (riscv_csr_op(vm, 0x021 /* vtype */, &val, CSR_SWAP))
-            ;
-        else
-            riscv_trap(vm, TRAP_ILL_INSTR, instruction);
+        maxlen_t vtype = bit_cut(instruction, 20, 11);
+        if (riscv_csr_op(vm, 0x021 /* vtype */, &vtype, CSR_SWAP));
+        else riscv_trap(vm, TRAP_ILL_INSTR, instruction);
         
         // set vl
-        val = bit_cut(15, 5);
-        val = vm->registers[val];
+        maxlen_t vl = bit_cut(15, 5);
+        uint32_t vlmax = rvv_vlmax(vm->csr.vtype);
+        // VLMAX = LMUL*VLEN/SEW
+        
+        if (vl) vl = vm->registers[vl];
         if (riscv_csr_op(vm, 0x020 /* vl */, &val, CSR_SWAP))
             vm->registers[rds] = val;
         else

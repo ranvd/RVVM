@@ -535,20 +535,19 @@ static bool riscv_csr_timeh(rvvm_hart_t* vm, maxlen_t* dest, uint8_t op)
 }
 
 #ifdef USE_RVV
-
-
 static bool riscv_csr_vtype(rvvm_hart_t* vm, maxlen_t* dest, uint8_t op)
 {
-    // checkt vtype is valid
-    rvv_set_vs(vm, RVV_DIRTY);
+    /* Todo: vtype can only be set by vset{i}vl{i} insn. 
+     * Still need a machanism to prevent the write from other incution
+     */
     maxlen_t val = vm->csr.vtype;
-
-    int32_t lmul = riscv_v_vlmul(rvvm_hart_t *vm);
-    if (lmul < vm->SEW_min - bit_log2(vm->ELEN)){
-        *dest = bit_replace(*dest, 31, 1, 1);
-    }
-
     csr_helper(&val, dest, op);
+
+    // checkt vtype is valid
+    int32_t lmul = rvv_vlmul(val);
+    if (lmul < vm->SEW_min - bit_log2(vm->ELEN)){
+        val = bit_replace(val, 31, 1, 1);
+    }
     vm->csr.vtype = val;
     return true;
 }
@@ -556,12 +555,15 @@ static bool riscv_csr_vtype(rvvm_hart_t* vm, maxlen_t* dest, uint8_t op)
 static bool riscv_csr_vl(rvvm_hart_t* vm, maxlen_t* dest, uint8_t op)
 {
     // check vl is valid
-    rvv_set_vs(vm, RVV_DIRTY);
+    maxlen_t val = vm->csr.vl;
+    csr_helper(&val, dest, op);
+
+    // check vl is valid
+
 
     maxlen_t val = vm->csr.vl;
     
 }
-
 #endif
 
 void riscv_csr_global_init()

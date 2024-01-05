@@ -57,7 +57,7 @@ static inline bool bit_check(uint64_t val, bitcnt_t pos)
     return (val >> pos) & 0x1;
 }
 
-static inline uint32_t bit_clz(uint64_t val){
+static inline uint32_t bit_clz(uint64_t x){
     x |= (x >> 1);
     x |= (x >> 2);
     x |= (x >> 4);
@@ -77,7 +77,7 @@ static inline uint32_t bit_clz(uint64_t val){
 }
 
 static inline uint32_t bit_log2(uint64_t val){
-    return bit_clz(val);
+    return 64 - bit_clz(val);
 }
 
 // Normalize the value to nearest next power of two

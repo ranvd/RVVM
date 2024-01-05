@@ -99,29 +99,45 @@ static inline void rvv_set_vs(rvvm_hart_t* vm, uint8_t value)
     vm->csr.status = bit_replace(vm->csr.status, 9, 2, value);
 }
 
-static inline int32_t rvv_vill(rvvm_hart_t *vm)
+static inline bool rvv_vill(maxlen_t vtype)
 {
-    return (int32_t) bit_cut(vm->csr.vtype, 31, 1);
+    return (bool) bit_cut(vtype, 31, 1);
 }
 
-static inline int32_t rvv_vma(rvvm_hart_t *vm)
+static inline bool rvv_vma(maxlen_t vtype)
 {
-    return (int32_t) bit_cut(vm->csr.vtype, 7, 1);
+    return (bool) bit_cut(vtype, 7, 1);
 }
 
-static inline int32_t rvv_vta(rvvm_hart_t *vm)
+static inline bool rvv_vta(maxlen_t vtype)
 {
-    return (int32_t) bit_cut(vm->csr.vtype, 6, 1);
+    return (bool) bit_cut(vtype, 6, 1);
 }
 
-static inline int32_t rvv_vsew(rvvm_hart_t *vm)
+static inline int32_t rvv_vsew(maxlen_t vtype)
 {
-    return (int32_t) bit_cut(vm->csr.vtype, 3, 3);
+    return (int32_t) (8 << bit_cut(vtype, 3, 3));
 }
 
-static inline int32_t rvv_vlmul(rvvm_hart_t *vm)
+static inline int32_t rvv_raw_vlmul(maxlen_t vtype)
 {
-    return sign_extend(bit_cut(vm->csr.vtype, 0, 3), 3);
+    return sign_extend(bit_cut(vtype, 0, 3), 3);
+}
+
+static inline int32_t rvv_vlmax(maxlen_t vtype){
+    int32_t raw_vlmul = rvv_raw_vlmul(vtype);
+    
+    int bit = raw_vlmul & 0b100;
+    int left_s, right_s;
+    if (bit){
+        left_s = 0;
+        right_s = raw_vlmul & 0b11;
+    } else {
+        left_s = raw_vlmul & 0b11;
+        right_s = 0;
+    }
+    
+    vm->VLEN >> bit_log2(rvv_vsew(vtype)) >> left_s << right_s;
 }
 
 #endif

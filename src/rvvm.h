@@ -252,9 +252,9 @@ struct rvvm_hart_t {
     } csr;
 
 # ifdef USE_RVV
-    size_t VLEN; // 8 <= VELN <= 2^16
-    size_t ELEN; // 8 <= ELEN <= VLEN
-    size_t SEW_min; // minimum size of sew
+    uint32_t VLEN; // 8 <= VELN <= 2^16
+    uint32_t ELEN; // 8 <= ELEN <= VLEN
+    uint32_t SEW_min; // minimum size of sew
 # endif
 
 #ifdef USE_JIT
