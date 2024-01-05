@@ -558,11 +558,8 @@ static bool riscv_csr_vl(rvvm_hart_t* vm, maxlen_t* dest, uint8_t op)
     maxlen_t val = vm->csr.vl;
     csr_helper(&val, dest, op);
 
-    // check vl is valid
-
-
-    maxlen_t val = vm->csr.vl;
-    
+    vm->csr.vl = val;
+    return true;
 }
 #endif
 

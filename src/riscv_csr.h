@@ -125,6 +125,7 @@ static inline int32_t rvv_raw_vlmul(maxlen_t vtype)
 }
 
 static inline int32_t rvv_vlmax(maxlen_t vtype){
+    /* Todo: write in more elegant way*/
     int32_t raw_vlmul = rvv_raw_vlmul(vtype);
     
     int bit = raw_vlmul & 0b100;

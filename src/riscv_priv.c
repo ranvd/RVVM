@@ -234,7 +234,6 @@ static void riscv_v_vsetvl(rvvm_hart_t *vm, const uint32_t instruction)
 {
     rvv_set_vs(vm, RVV_DIRTY);
     regid_t rds = bit_cut(instruction, 7, 5);
-    regid_t rd1 = bit_cut(instruction, 15, 5);
     switch (instruction & RV_PRIV_V_VSETVL_MASK)
     {
     case vsetvli_0: // 0b0x
@@ -246,45 +245,60 @@ static void riscv_v_vsetvl(rvvm_hart_t *vm, const uint32_t instruction)
         
         // set vl
         maxlen_t vl = bit_cut(15, 5);
-        uint32_t vlmax = rvv_vlmax(vm->csr.vtype);
-        // VLMAX = LMUL*VLEN/SEW
+        maxlen_t vlmax = rvv_vlmax(vm->csr.vtype);
+
+        if (vl == 0){
+            vl = vlmax;
+            if (rds == 0)
+                vl = (vlmax > vm->csr.vl)? vm->csr.vl : vlmax;
+        } else {
+            vl = vm->registers[vl] > vlmax ? vlmax : vm->registers[vl];
+        }
         
-        if (vl) vl = vm->registers[vl];
-        if (riscv_csr_op(vm, 0x020 /* vl */, &val, CSR_SWAP))
+        // VLMAX = LMUL*VLEN/SEW
+        if (riscv_csr_op(vm, 0x020 /* vl */, &vl, CSR_SWAP))
             vm->registers[rds] = val;
         else
             riscv_trap(vm, TRAP_ILL_INSTR, instruction);
-
         break;
     case vsetvl: // 0b10
         // set vtype
-        maxlen_t val = bit_cut(instruction, 20, 10);
-        val = vm->registers[val];
-        if (riscv_csr_op(vm, 0x021 /* vtype */, &val, CSR_SWAP))
-            ;
-        else
-            riscv_trap(vm, TRAP_ILL_INSTR, instruction);
+        maxlen_t vtype = bit_cut(instruction, 20, 10);
+        vtype = vm->registers[vtype];
+        if (riscv_csr_op(vm, 0x021 /* vtype */, &vtype, CSR_SWAP));
+        else riscv_trap(vm, TRAP_ILL_INSTR, instruction);
         
         // set vl
-        val = bit_cut(15, 5);
-        val = vm->registers[val];
-        if (riscv_csr_op(vm, 0x020 /* vl */, &val, CSR_SWAP))
+        maxlen_t vl = bit_cut(15, 5);
+        maxlen_t vlmax = rvv_vlmax(vm->csr.vtype);
+
+        if (vl == 0){
+            vl = vlmax;
+            if (rds == 0)
+                vl = (vlmax > vm->csr.vl)? vm->csr.vl : vlmax;
+        } else {
+            vl = vm->registers[vl] > vlmax ? vlmax : vm->registers[vl];
+        }
+        
+        // VLMAX = LMUL*VLEN/SEW
+        if (riscv_csr_op(vm, 0x020 /* vl */, &vl, CSR_SWAP))
             vm->registers[rds] = val;
         else
             riscv_trap(vm, TRAP_ILL_INSTR, instruction);
         break;
     case vsetivli: // 0b11
         // set vtype
-        maxlen_t val = bit_cut(instruction, 20, 5);
-        if (riscv_csr_op(vm, 0x021 /* vtype */, &val, CSR_SWAP))
-            ;
-        else
-            riscv_trap(vm, TRAP_ILL_INSTR, instruction);
+        maxlen_t vtype = bit_cut(instruction, 20, 5);
+        if (riscv_csr_op(vm, 0x021 /* vtype */, &vtype, CSR_SWAP));
+        else riscv_trap(vm, TRAP_ILL_INSTR, instruction);
         
         // set vl
-        val = bit_cut(instruction, 15, 5);
-        if (riscv_csr_op(vm, 0x020 /* vl */, &val, CSR_SWAP))
-            vm->registers[rds] = val;
+        maxlen_t vl = bit_cut(instruction, 15, 5);
+        maxlen_t vlmax = rvv_vlmax(vm->csr.vtype);
+
+        vl = (vlmax > vl)? vl : vlmax;
+        if (riscv_csr_op(vm, 0x020 /* vl */, &vl, CSR_SWAP))
+            vm->registers[rds] = vl;
         else
             riscv_trap(vm, TRAP_ILL_INSTR, instruction);
     default:
